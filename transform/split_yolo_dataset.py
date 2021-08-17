@@ -4,7 +4,9 @@
 @Time      : 2021/7/14 10:06
 @Author    : luhenghui
 
-执行：python split_dataset_yolo.py --root_path $ROOT_PATH
+执行：python split_yolo_dataset.py --root_path $ROOT_PATH
+python split_yolo_dataset.py --root_path G:/data/study/GitHub/dataset_test/test_merge
+注意：文件标签需在images和labels文件夹中单独存储
 """
 from sklearn.model_selection import train_test_split
 import os

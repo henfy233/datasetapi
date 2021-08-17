@@ -12,7 +12,10 @@ YOLO 格式的数据集转化为 COCO 格式的数据集
 --random_split 为划分参数，如果没有这个参数则只保存train.json文件
 
 命令行：
-python yolo2coco.py --root_dir ../../data
+python yolo2coco.py --root_dir ../../data --random_split
+
+python yolo2coco.py --root_dir ../../dataset_test/test_merge_f --random_split
+python yolo2coco.py --root_dir ./train --random_split
 """
 
 import os

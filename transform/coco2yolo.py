@@ -6,6 +6,7 @@
 
 --json_path 输入的json文件路径
 --save_path 保存的文件夹名字，默认为当前目录下的labels。
+python coco2yolo.py --json_path ./train.json --save_path ./labels
 """
 
 import os
