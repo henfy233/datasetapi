@@ -1,5 +1,5 @@
 """
-@Introduce : 
+@Introduce : 之前用倒伏分类的数据所用,分类哪个时间所拍
 @File      : class.py
 @Time      : 2021/7/13 10:53
 @Author    : luhenghui
