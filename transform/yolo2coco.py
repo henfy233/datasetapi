@@ -3,8 +3,7 @@
 @File      : yolo2coco.py
 @Time      : 2021/7/14 0:37
 @Author    : luhenghui
-"""
-"""
+
 https://zhuanlan.zhihu.com/p/341801502
 YOLO 格式的数据集转化为 COCO 格式的数据集
 --root_dir 输入根目录$ROOT_PATH的位置

@@ -1,3 +1,9 @@
+"""
+@Introduce : 用于对数据集中图片以及json文件的重命名
+@File      : rename.py
+@Time      : 2021/8/19 10:40
+@Author    : luhenghui
+"""
 import os
 
 # this_file_path = __file__

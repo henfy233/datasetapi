@@ -1,3 +1,9 @@
+"""
+@Introduce : 用于检测当前一共标注了多少class 并对检测结果进行输出
+@File      : checkClasses.py
+@Time      : 2021/8/19 10:40
+@Author    : luhenghui
+"""
 import os
 import re
 
