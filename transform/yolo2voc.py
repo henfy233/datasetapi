@@ -1,11 +1,22 @@
-__Author__ = "Shliang"
-__Email__ = "shliang0603@gmail.com"
+"""
+@Introduce : yolo转voc
+@File      : yolo2voc.py
+@Time      : 2021/8/25 10:40
+@Author    : luhenghui
+
+YOLO 格式的数据集转化为 VOC 格式的数据集
+--root_dir 输入根目录$ROOT_PATH的位置
+
+命令行：
+python yolo2voc.py --root_dir ../../mmdetection/data/test_f/class3
+"""
 
 import os
 import xml.etree.ElementTree as ET
 from xml.dom.minidom import Document
+from tqdm import tqdm
 import cv2
-
+import argparse
 
 '''
 import xml
@@ -18,22 +29,31 @@ def writexml(self,
              encoding: Any = None) -> None
 '''
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--root_dir', default='./data', type=str,
+                    help="root path of images and labels, include ./images and ./labels and classes.txt")
+arg = parser.parse_args()
+
+
 class YOLO2VOCConvert:
     def __init__(self, txts_path, xmls_path, imgs_path):
-        self.txts_path = txts_path   # 标注的yolo格式标签文件路径
-        self.xmls_path = xmls_path   # 转化为voc格式标签之后保存路径
-        self.imgs_path = imgs_path   # 读取读片的路径个图片名字，存储到xml标签文件中
-        self.classes = ["panicle"]
+        self.txts_path = txts_path  # 标注的yolo格式标签文件路径
+        self.xmls_path = xmls_path  # 转化为voc格式标签之后保存路径
+        self.imgs_path = imgs_path  # 读取图片的路径和图片名字，存储到xml标签文件中
+        # self.classes = ["panicle"]
+        with open(os.path.join(txts_path, 'classes.txt')) as f:
+            self.classes = f.read().strip().split()
 
     # 从所有的txt文件中提取出所有的类别， yolo格式的标签格式类别为数字 0,1,...
     # writer为True时，把提取的类别保存到'./Annotations/classes.txt'文件中
     def search_all_classes(self, writer=False):
         # 读取每一个txt标签文件，取出每个目标的标注信息
         all_names = set()
-        txts = os.listdir(self.txts_path)
+        txts = os.listdir(self.txts_path)[1:] # 过滤掉classes.txt文件
+        # txts = [txt for txt in txts if not txt.split('.')[0] == "classes"] # 过滤掉classes.txt文件
         # 使用列表生成式过滤出只有后缀名为txt的标签文件
         txts = [txt for txt in txts if txt.split('.')[-1] == 'txt']
-        print(len(txts), txts)
+        # print(len(txts), txts)
         # 11 ['0002030.txt', '0002031.txt', ... '0002039.txt', '0002040.txt']
         for txt in txts:
             txt_file = os.path.join(self.txts_path, txt)
@@ -41,7 +61,7 @@ class YOLO2VOCConvert:
                 objects = f.readlines()
                 for object in objects:
                     object = object.strip().split(' ')
-                    print(object)  # ['2', '0.506667', '0.553333', '0.490667', '0.658667']
+                    # print(object)  # ['2', '0.506667', '0.553333', '0.490667', '0.658667']
                     all_names.add(int(object[0]))
             # print(objects)  # ['2 0.506667 0.553333 0.490667 0.658667\n', '0 0.496000 0.285333 0.133333 0.096000\n', '8 0.501333 0.412000 0.074667 0.237333\n']
 
@@ -84,20 +104,20 @@ class YOLO2VOCConvert:
 
         # 把上面的两个循环改写成为一个循环：
         imgs = os.listdir(self.imgs_path)
-        txts = os.listdir(self.txts_path)
-        txts = [txt for txt in txts if not txt.split('.')[0] == "classes"]  # 过滤掉classes.txt文件
-        print(txts)
+        txts = os.listdir(self.txts_path)[1:] # 过滤掉classes.txt文件
+        # txts = [txt for txt in txts if not txt.split('.')[0] == "classes"]  # 过滤掉classes.txt文件
+        # print(txts)
         # 注意，这里保持图片的数量和标签txt文件数量相等，且要保证名字是一一对应的   (后面改进，通过判断txt文件名是否在imgs中即可)
-        if len(imgs) == len(txts):   # 注意：./Annotation_txt 不要把classes.txt文件放进去
+        if len(imgs) == len(txts):  # 注意：./Annotation_txt 不要把classes.txt文件放进去
             map_imgs_txts = [(img, txt) for img, txt in zip(imgs, txts)]
             txts = [txt for txt in txts if txt.split('.')[-1] == 'txt']
-            print(len(txts), txts)
-            for img_name, txt_name in map_imgs_txts:
+            # print(len(txts), txts)
+            for img_name, txt_name in tqdm(map_imgs_txts):
                 # 读取图片的尺度信息
-                print("读取图片：", img_name)
+                # print("读取图片：", img_name)
                 img = cv2.imread(os.path.join(self.imgs_path, img_name))
                 height_img, width_img, depth_img = img.shape
-                print(height_img, width_img, depth_img)   # h 就是多少行（对应图片的高度）， w就是多少列（对应图片的宽度）
+                # print(height_img, width_img, depth_img)  # h 就是多少行（对应图片的高度）， w就是多少列（对应图片的宽度）
 
                 # 获取标注文件txt中的标注信息
                 all_objects = []
@@ -107,7 +127,7 @@ class YOLO2VOCConvert:
                     for object in objects:
                         object = object.strip().split(' ')
                         all_objects.append(object)
-                        print(object)  # ['2', '0.506667', '0.553333', '0.490667', '0.658667']
+                        # print(object)  # ['2', '0.506667', '0.553333', '0.490667', '0.658667']
 
                 # 创建xml标签文件中的标签
                 xmlBuilder = Document()
@@ -122,7 +142,7 @@ class YOLO2VOCConvert:
                 # 给子标签folder中存入内容，folder标签中的内容是存放图片的文件夹，例如：JPEGImages
                 folderContent = xmlBuilder.createTextNode(self.imgs_path.split('/')[-1])  # 标签内存
                 folder.appendChild(folderContent)  # 把内容存入标签
-                annotation.appendChild(folder)   # 把存好内容的folder标签放到 annotation根标签下
+                annotation.appendChild(folder)  # 把存好内容的folder标签放到 annotation根标签下
 
                 # 创建子标签filename
                 filename = xmlBuilder.createElement("filename")
@@ -137,7 +157,7 @@ class YOLO2VOCConvert:
                 width = xmlBuilder.createElement("width")  # size子标签width
                 widthContent = xmlBuilder.createTextNode(str(width_img))
                 width.appendChild(widthContent)
-                size.appendChild(width)   # 把width添加为size的子标签
+                size.appendChild(width)  # 把width添加为size的子标签
                 # 给size标签创建子标签height
                 height = xmlBuilder.createElement("height")  # size子标签height
                 heightContent = xmlBuilder.createTextNode(str(height_img))  # xml标签中存入的内容都是字符串
@@ -148,7 +168,7 @@ class YOLO2VOCConvert:
                 depthContent = xmlBuilder.createTextNode(str(depth_img))
                 depth.appendChild(depthContent)
                 size.appendChild(depth)  # 把width添加为size的子标签
-                annotation.appendChild(size)   # 把size添加为annotation的子标签
+                annotation.appendChild(size)  # 把size添加为annotation的子标签
 
                 # 每一个object中存储的都是['2', '0.506667', '0.553333', '0.490667', '0.658667']一个标注目标
                 for object_info in all_objects:
@@ -181,14 +201,12 @@ class YOLO2VOCConvert:
 
                     # 先转换一下坐标
                     # (objx_center, objy_center, obj_width, obj_height)->(xmin，ymin, xmax,ymax)
-                    x_center = float(object_info[1])*width_img + 1
-                    y_center = float(object_info[2])*height_img + 1
-                    xminVal = int(x_center - 0.5*float(object_info[3])*width_img)   # object_info列表中的元素都是字符串类型
-                    yminVal = int(y_center - 0.5*float(object_info[4])*height_img)
-                    xmaxVal = int(x_center + 0.5*float(object_info[3])*width_img)
-                    ymaxVal = int(y_center + 0.5*float(object_info[4])*height_img)
-
-
+                    x_center = float(object_info[1]) * width_img + 1
+                    y_center = float(object_info[2]) * height_img + 1
+                    xminVal = int(x_center - 0.5 * float(object_info[3]) * width_img)  # object_info列表中的元素都是字符串类型
+                    yminVal = int(y_center - 0.5 * float(object_info[4]) * height_img)
+                    xmaxVal = int(x_center + 0.5 * float(object_info[3]) * width_img)
+                    ymaxVal = int(y_center + 0.5 * float(object_info[4]) * height_img)
 
                     # 创建bndbox标签(三级标签)
                     bndbox = xmlBuilder.createElement("bndbox")
@@ -217,15 +235,30 @@ class YOLO2VOCConvert:
 
                     object.appendChild(bndbox)
                     annotation.appendChild(object)  # 把object添加为annotation的子标签
-                f = open(os.path.join(self.xmls_path, txt_name.split('.')[0]+'.xml'), 'w')
+                f = open(os.path.join(self.xmls_path, txt_name.split('.')[0] + '.xml'), 'w')
                 xmlBuilder.writexml(f, indent='\t', newl='\n', addindent='\t', encoding='utf-8')
                 f.close()
 
-if __name__ == '__main__':
-    txts_path1 = '../../mmdetection/data/test_merge_f/VOC/Annotations_txt'
-    xmls_path1 = '../../mmdetection/data/test_merge_f/VOC/Annotations_xml'
-    imgs_path1 = '../../mmdetection/data/test_merge_f/VOC/JPEGImages'
 
+if __name__ == '__main__':
+    root_path = arg.root_dir
+    assert os.path.exists(root_path), 'not found root_path'
+    voc_path = os.path.join(root_path, 'VOC')
+    if not os.path.exists(voc_path):
+        os.makedirs(voc_path)
+    txts_path1 = os.path.join(root_path, 'labels')
+    xmls_path1 = os.path.join(voc_path, 'Annotations')
+    imgs_path1 = os.path.join(voc_path, 'JPEGImages')
+    # file = open(txts_path1, 'w')
+    # file.close()
+    # file = open(xmls_path1, 'w')
+    # file.close()
+    if not os.path.exists(txts_path1):
+        os.makedirs(txts_path1)
+    if not os.path.exists(xmls_path1):
+        os.makedirs(xmls_path1)
+    if not os.path.exists(imgs_path1):
+        os.makedirs(imgs_path1)
     yolo2voc_obj1 = YOLO2VOCConvert(txts_path1, xmls_path1, imgs_path1)
     labels = yolo2voc_obj1.search_all_classes()
     print('labels: ', labels)

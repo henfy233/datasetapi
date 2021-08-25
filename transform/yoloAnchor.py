@@ -4,15 +4,13 @@
 @Time      : 2021/8/19 10:40
 @Author    : luhenghui
 
-YOLO 格式的数据集转化为 COCO 格式的数据集
+根据标注尺寸大小分类
 --root_dir 输入根目录$ROOT_PATH的位置
---save_path 如果不进行随机划分，可利用此参数指定输出文件的名字，默认保存为train.json
 --random_split 为划分参数，如果没有这个参数则只保存train.json文件
 
 命令行：
 python yoloAnchor.py --root_dir ../../merge_full
-
---random_split
+python yoloAnchor.py --root_dir ../../mmdetection/data/test_f/class3
 """
 import os
 import argparse
@@ -28,7 +26,7 @@ arg = parser.parse_args()
 def yolo2coco(root_path):
     originLabelsDir = os.path.join(root_path, 'labels')
     with open(os.path.join(originLabelsDir, 'classes.txt')) as f:
-        classes = f.read().strip().split() # 获取类别
+        classes = f.read().strip().split()  # 获取类别
     print('originLabelsDir', originLabelsDir)
     # 图片文件夹名字
     indexes = os.listdir(originLabelsDir)[1:]  # 排除 classes.txt 文件
@@ -56,10 +54,10 @@ def yolo2coco(root_path):
                 w = float(labels[3])
                 h = float(labels[4])
                 ratio = w / h
-                if ratio > 2:
+                if ratio > 1.5:
                     wl += 1
                     new_class = 2
-                elif ratio < 0.5:
+                elif ratio < 0.66667:
                     hl += 1
                     new_class = 0
                 else:
@@ -71,7 +69,7 @@ def yolo2coco(root_path):
                 file_data += label
         with open(os.path.join(originLabelsDir, txtFile), 'w') as fr:
             fr.write(file_data)
-    print('总类别数')
+    print('总标签数', ann_id_cnt)
     print('wl宽长', wl, 'wh中等', wh, 'hl高长', hl)
     return
 
