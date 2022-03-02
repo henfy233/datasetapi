@@ -8,7 +8,8 @@ YOLO 格式的数据集转化为 VOC 格式的数据集
 --root_dir 输入根目录$ROOT_PATH的位置
 
 命令行：
-python yolo2voc.py --root_dir ../../mmdetection/data/test_f/class3
+python yolo2voc.py --root_dir ../../dataset_test/test_f/class3
+python yolo2voc.py --root_dir G:/data/study/GitHub/dataset_test/test_f/class3/test
 """
 
 import os
@@ -49,8 +50,9 @@ class YOLO2VOCConvert:
     def search_all_classes(self, writer=False):
         # 读取每一个txt标签文件，取出每个目标的标注信息
         all_names = set()
-        txts = os.listdir(self.txts_path)[1:] # 过滤掉classes.txt文件
-        # txts = [txt for txt in txts if not txt.split('.')[0] == "classes"] # 过滤掉classes.txt文件
+        # txts = os.listdir(self.txts_path)[1:] # 过滤掉classes.txt文件
+        txts = os.listdir(self.txts_path)
+        txts = [txt for txt in txts if not txt.split('.')[0] == "classes"] # 过滤掉classes.txt文件
         # 使用列表生成式过滤出只有后缀名为txt的标签文件
         txts = [txt for txt in txts if txt.split('.')[-1] == 'txt']
         # print(len(txts), txts)
@@ -104,8 +106,9 @@ class YOLO2VOCConvert:
 
         # 把上面的两个循环改写成为一个循环：
         imgs = os.listdir(self.imgs_path)
-        txts = os.listdir(self.txts_path)[1:] # 过滤掉classes.txt文件
-        # txts = [txt for txt in txts if not txt.split('.')[0] == "classes"]  # 过滤掉classes.txt文件
+        # txts = os.listdir(self.txts_path)[1:] # 过滤掉classes.txt文件
+        txts = os.listdir(self.txts_path)
+        txts = [txt for txt in txts if not txt.split('.')[0] == "classes"]  # 过滤掉classes.txt文件
         # print(txts)
         # 注意，这里保持图片的数量和标签txt文件数量相等，且要保证名字是一一对应的   (后面改进，通过判断txt文件名是否在imgs中即可)
         if len(imgs) == len(txts):  # 注意：./Annotation_txt 不要把classes.txt文件放进去
@@ -242,6 +245,7 @@ class YOLO2VOCConvert:
 
 if __name__ == '__main__':
     root_path = arg.root_dir
+    # root_path = r"G:\data\study\GitHub\dataset_test\test_f\class3\test"
     assert os.path.exists(root_path), 'not found root_path'
     voc_path = os.path.join(root_path, 'VOC')
     if not os.path.exists(voc_path):

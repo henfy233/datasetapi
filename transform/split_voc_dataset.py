@@ -11,7 +11,8 @@
 bug: 还没修改好random_split参数用法
 
 执行：
-python split_voc_dataset.py --root_dir ../../mmdetection/data/test_f/class3 --random_split
+python split_voc_dataset.py --root_dir ../../mmdetection/data/test_f/class1 --random_split
+python split_voc_dataset.py --root_dir ../../datasets/mask
 """
 
 import os
@@ -27,8 +28,8 @@ parser.add_argument('--root_dir', default='./data', type=str,
 parser.add_argument('--random_split', action='store_true', help="random split the dataset, default ratio is 8:1:1")
 arg = parser.parse_args()
 
-VOC_CLASSES = ['hl', 'wh', 'wl']
-
+# VOC_CLASSES = ['hl', 'wh', 'wl']
+VOC_CLASSES = ['panicle']
 
 def generate_train_val_test_txt(xml_file_path, save_Path):
     trainval_percent = 0.9

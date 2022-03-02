@@ -14,6 +14,8 @@
 - classes.txt和images必须有。
 - labels可以没有，那就只是展示$DT_DIR预测结果。
 - $DT_DIR 如果没有输入，则只展示标签结果。
+
+python vis_yolo_gt_dt.py --root G:/data/study/GitHub/dataset_test/period/test --dt G:/data/study/GitHub/dataset_test/period/dt
 """
 import cv2
 import os
@@ -30,19 +32,20 @@ parser.add_argument('--dt', type=str, default='', help="yolo format results of d
 parser.add_argument('--conf', type=float, default=0.5, help="visulization conf thres")
 arg = parser.parse_args()
 
-colorlist = []
-# 5^3种颜色。
-for i in range(25, 256, 50):
-    for j in range(25, 256, 50):
-        for k in range(25, 256, 50):
-            colorlist.append((i, j, k))
-random.shuffle(colorlist)
+colorlist = [(56,56,255),(151,157,255),(31,112,255),(29,178,255),(49,210,207),(10,249,72)]
+# 参考yolov5的标注颜色库
+# for i in range(25, 256, 50):
+#     for j in range(25, 256, 50):
+#         for k in range(25, 256, 50):
+#             colorlist.append((i, j, k))
+# print(colorlist[:8])
+# random.shuffle(colorlist)
 
 
 def plot_bbox(img_path, img_dir, out_dir, gt=None, dt=None, cls2label=None, line_thickness=None):
     img = cv2.imread(os.path.join(img_dir, img_path))
     height, width, _ = img.shape
-    tl = line_thickness or round(0.002 * (width + height) / 2) + 1  # line/font thickness
+    tl = line_thickness or round(0.002 * (width + height) / 2)  # line/font thickness
     font = cv2.FONT_HERSHEY_SIMPLEX
     if gt:
         tf = max(tl - 1, 1)  # font thickness

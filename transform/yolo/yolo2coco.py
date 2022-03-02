@@ -10,11 +10,18 @@ YOLO 格式的数据集转化为 COCO 格式的数据集
 --save_path 如果不进行随机划分，可利用此参数指定输出文件的名字，默认保存为train.json
 --random_split 为划分参数，如果没有这个参数则只保存train.json文件
 
+需要把classes.txt放在根目录下
+
 命令行：
 python yolo2coco.py --root_dir ../../data --random_split
 
-python yolo2coco.py --root_dir ../../dataset_test/test_merge_f --random_split
+python yolo2coco.py --root_dir ../../../dataset_test/test_merge_f --random_split
 python yolo2coco.py --root_dir ./train --random_split
+python yolo2coco.py --root_dir ../../../mmdetection/data/test_f/class1 --random_split
+python yolo2coco.py --root_dir ../../../dataset_test/period/origin --random_split
+python yolo2coco.py --root_dir ../../../dataset_test/period/train
+python yolo2coco.py --root_dir ../../../dataset_test/panicle_period/test
+
 """
 
 import os
@@ -25,17 +32,17 @@ from sklearn.model_selection import train_test_split
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--root_dir', default='./data', type=str,
-                    help="root path of images and labels, include ./images and ./labels and classes.txt")
+# parser.add_argument('--root_dir', default='./data', type=str,
+#                     help="root path of images and labels, include ./images and ./labels and classes.txt")
 parser.add_argument('--save_path', type=str, default='./train.json',
                     help="if not split the dataset, give a path to a json file")
-parser.add_argument('--random_split', action='store_true', help="random split the dataset, default ratio is 8:1:1")
+parser.add_argument('--random_split', action='store_true', help="random split the dataset, default ratio is 7:2:1")
 arg = parser.parse_args()
 
 
-def train_test_val_split(img_paths, ratio_train=0.8, ratio_test=0.1, ratio_val=0.1):
+def train_test_val_split(img_paths, ratio_train=0.7, ratio_test=0.2, ratio_val=0.1):
     # 这里可以修改数据集划分的比例。
-    assert int(ratio_train + ratio_test + ratio_val) == 1
+    # assert int(ratio_train + ratio_test + ratio_val) == 1
     train_img, middle_img = train_test_split(img_paths, test_size=1 - ratio_train, random_state=233)
     ratio = ratio_val / (1 - ratio_train)
     val_img, test_img = train_test_split(middle_img, test_size=ratio, random_state=233)
@@ -44,8 +51,8 @@ def train_test_val_split(img_paths, ratio_train=0.8, ratio_test=0.1, ratio_val=0
 
 
 def yolo2coco(root_path, random_split):
-    originLabelsDir = os.path.join(root_path, 'labels')
     originImagesDir = os.path.join(root_path, 'images')
+    originLabelsDir = os.path.join(root_path, 'labels')
     with open(os.path.join(root_path, 'classes.txt')) as f:
         classes = f.read().strip().split()
     # images dir name
@@ -62,7 +69,7 @@ def yolo2coco(root_path, random_split):
             train_dataset['categories'].append({'id': i, 'name': cls, 'supercategory': 'mark'})
             val_dataset['categories'].append({'id': i, 'name': cls, 'supercategory': 'mark'})
             test_dataset['categories'].append({'id': i, 'name': cls, 'supercategory': 'mark'})
-        train_img, val_img, test_img = train_test_val_split(indexes, 0.8, 0.1, 0.1)
+        train_img, val_img, test_img = train_test_val_split(indexes, 0.7, 0.2, 0.1)
     else:
         dataset = {'categories': [], 'annotations': [], 'images': []}
         for i, cls in enumerate(classes, 0):
@@ -146,8 +153,10 @@ def yolo2coco(root_path, random_split):
 
 
 if __name__ == "__main__":
-    root_path = arg.root_dir
-    assert os.path.exists(root_path)
+    # root_path = arg.root_dir
+    # assert os.path.exists(root_path)
+    root_path = r"G:\data\study\GitHub\dataset_test\panicle_period\test"
+
     random_split = arg.random_split
     print("Loading data from ", root_path, "\nWhether to split the data:", random_split)
     yolo2coco(root_path, random_split)
