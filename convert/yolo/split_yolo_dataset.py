@@ -6,10 +6,9 @@
 
 执行：python split_yolo_dataset.py --root_path $ROOT_PATH
 python split_yolo_dataset.py --root_path G:/data/study/GitHub/dataset_test/test_f/class3
-python split_yolo_dataset.py --root_path ../../../dataset_test/panicle
 python split_yolo_dataset.py --root_path G:/data/study/GitHub/dataset_test/panicle_period
 python split_yolo_dataset.py --root_path G:/data/study/GitHub/mmdetection/data/panicle_period
-python split_yolo_dataset.py --root_path G:/data/study/GitHub/dataset_test/panicle_side
+python split_yolo_dataset.py --root_path G:/data/study/GitHub/dataset_test/drone_panicle
 
 注意：文件标签需在images和labels文件夹中单独存储
 """
@@ -21,7 +20,9 @@ from tqdm import tqdm
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--root_path', type=str, default='yolo_data', help="root path of images and labels")
+parser.add_argument('--root_path', type=str,
+                    default='G:/data/study/GitHub/mmdetection/data/panicle_yolo',
+                    help="root path of images and labels")
 arg = parser.parse_args()
 
 
@@ -66,4 +67,5 @@ if __name__ == '__main__':
     print('root_path', root_path)
     img_paths = os.listdir(os.path.join(root_path, 'ori_images'))
     label_paths = os.listdir(os.path.join(root_path, 'ori_labels'))
-    train_test_val_split(img_paths, 0.7, 0.2, 0.1)
+    # train_test_val_split(img_paths, 0.7, 0.2, 0.1)
+    train_test_val_split(img_paths, 0.8, 0.1, 0.1)

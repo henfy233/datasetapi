@@ -32,16 +32,29 @@ from sklearn.model_selection import train_test_split
 import argparse
 
 parser = argparse.ArgumentParser()
-# parser.add_argument('--root_dir', default='./data', type=str,
-#                     help="root path of images and labels, include ./images and ./labels and classes.txt")
-parser.add_argument('--save_path', type=str, default='./train.json',
+parser.add_argument('--root_dir',
+                    default='G:/data/study/GitHub/mmdetection/data/panicle_period/test',
+                    # default='G:/data/study/GitHub/mmdetection/data/panicle_yolo',
+                    type=str,
+                    help="root path of images and labels, include ./images and ./labels and classes.txt")
+parser.add_argument('--save_path', type=str,
+                    default='train.json',
                     help="if not split the dataset, give a path to a json file")
-parser.add_argument('--random_split', action='store_true', help="random split the dataset, default ratio is 7:2:1")
+parser.add_argument('--random_split',
+                    action='store_true',
+                    default=False,
+                    help="random split the dataset, default ratio is 7:2:1")
+parser.add_argument('--split_by_file',
+                    action='store_true',
+                    default=False,
+                    help="define how to split the dataset, include ./train.txt ./val.txt ./test.txt ")
 arg = parser.parse_args()
 
 
-def train_test_val_split(img_paths, ratio_train=0.7, ratio_test=0.2, ratio_val=0.1):
+# def train_test_val_split_random(img_paths, ratio_train=0.7, ratio_test=0.1, ratio_val=0.2):
+def train_test_val_split_random(img_paths, ratio_train=1.0, ratio_test=0, ratio_val=0):
     # 这里可以修改数据集划分的比例。
+    # print(ratio_train + ratio_test + ratio_val)
     # assert int(ratio_train + ratio_test + ratio_val) == 1
     train_img, middle_img = train_test_split(img_paths, test_size=1 - ratio_train, random_state=233)
     ratio = ratio_val / (1 - ratio_train)
@@ -49,16 +62,35 @@ def train_test_val_split(img_paths, ratio_train=0.7, ratio_test=0.2, ratio_val=0
     print("NUMS of train:val:test = {}:{}:{}".format(len(train_img), len(val_img), len(test_img)))
     return train_img, val_img, test_img
 
+def train_test_val_split_by_files(img_paths, root_dir):
+    # 根据文件 train.txt, val.txt, test.txt（里面写的都是对应集合的图片名字） 来定义训练集、验证集和测试集
+    phases = ['train', 'val', 'test']
+    img_split = []
+    for p in phases:
+        define_path = os.path.join(root_dir, f'{p}.txt')
+        print(f'Read {p} dataset definition from {define_path}')
+        assert os.path.exists(define_path)
+        with open(define_path, 'r') as f:
+            img_paths = f.readlines()
+            # img_paths = [os.path.split(img_path.strip())[1] for img_path in img_paths]  # NOTE 取消这句备注可以读取绝对地址。
+            img_split.append(img_paths)
+    return img_split[0], img_split[1], img_split[2]
 
-def yolo2coco(root_path, random_split):
+
+def yolo2coco(arg):
+    root_path = arg.root_dir
+    print("Loading data from ", root_path)
+    assert os.path.exists(root_path)
+
     originImagesDir = os.path.join(root_path, 'images')
     originLabelsDir = os.path.join(root_path, 'labels')
+
     with open(os.path.join(root_path, 'classes.txt')) as f:
         classes = f.read().strip().split()
     # images dir name
     indexes = os.listdir(originImagesDir)
 
-    if random_split:
+    if arg.random_split or arg.split_by_file:
         # 用于保存所有数据的图片信息和标注信息
         train_dataset = {'categories': [], 'annotations': [], 'images': []}
         val_dataset = {'categories': [], 'annotations': [], 'images': []}
@@ -69,7 +101,13 @@ def yolo2coco(root_path, random_split):
             train_dataset['categories'].append({'id': i, 'name': cls, 'supercategory': 'mark'})
             val_dataset['categories'].append({'id': i, 'name': cls, 'supercategory': 'mark'})
             test_dataset['categories'].append({'id': i, 'name': cls, 'supercategory': 'mark'})
-        train_img, val_img, test_img = train_test_val_split(indexes, 0.7, 0.2, 0.1)
+
+        if arg.random_split:
+            print("spliting mode: random split")
+            train_img, val_img, test_img = train_test_val_split_random(indexes, 0.7, 0.2, 0.1)
+        elif arg.split_by_file:
+            print("spliting mode: split by files")
+            train_img, val_img, test_img = train_test_val_split_by_files(indexes, root_path)
     else:
         dataset = {'categories': [], 'annotations': [], 'images': []}
         for i, cls in enumerate(classes, 0):
@@ -83,7 +121,7 @@ def yolo2coco(root_path, random_split):
         # 读取图像的宽和高
         im = cv2.imread(os.path.join(root_path, 'images/') + index)
         height, width, _ = im.shape
-        if random_split:
+        if arg.random_split or arg.split_by_file:
             # 切换dataset的引用对象，从而划分数据集
             if index in train_img:
                 dataset = train_dataset
@@ -134,7 +172,7 @@ def yolo2coco(root_path, random_split):
     folder = os.path.join(root_path, 'annotations')
     if not os.path.exists(folder):
         os.makedirs(folder)
-    if random_split:
+    if arg.random_split or arg.split_by_file:
         for phase in ['train', 'val', 'test']:
             json_name = os.path.join(root_path, 'annotations/{}.json'.format(phase))
             with open(json_name, 'w') as f:
@@ -155,8 +193,6 @@ def yolo2coco(root_path, random_split):
 if __name__ == "__main__":
     # root_path = arg.root_dir
     # assert os.path.exists(root_path)
-    root_path = r"G:\data\study\GitHub\dataset_test\panicle_period\test"
-
-    random_split = arg.random_split
-    print("Loading data from ", root_path, "\nWhether to split the data:", random_split)
-    yolo2coco(root_path, random_split)
+    # random_split = arg.random_split
+    # print("Loading data from ", root_path, "\nWhether to split the data:", random_split)
+    yolo2coco(arg)

@@ -7,6 +7,8 @@
 YOLO 格式的数据集转化为 VOC 格式的数据集
 --root_dir 输入根目录$ROOT_PATH的位置
 
+有个问题，需要手动把图片放入VOC/JPEGImages文件夹中
+
 命令行：
 python yolo2voc.py --root_dir ../../dataset_test/test_f/class3
 python yolo2voc.py --root_dir G:/data/study/GitHub/dataset_test/test_f/class3/test
@@ -31,7 +33,9 @@ def writexml(self,
 '''
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--root_dir', default='./data', type=str,
+parser.add_argument('--root_dir',
+                    default='G:/data/study/GitHub/mmdetection/data/xx',
+                    type=str,
                     help="root path of images and labels, include ./images and ./labels and classes.txt")
 arg = parser.parse_args()
 
@@ -65,7 +69,8 @@ class YOLO2VOCConvert:
                     object = object.strip().split(' ')
                     # print(object)  # ['2', '0.506667', '0.553333', '0.490667', '0.658667']
                     all_names.add(int(object[0]))
-            # print(objects)  # ['2 0.506667 0.553333 0.490667 0.658667\n', '0 0.496000 0.285333 0.133333 0.096000\n', '8 0.501333 0.412000 0.074667 0.237333\n']
+            # print(objects)
+            # ['2 0.506667 0.553333 0.490667 0.658667\n', '0 0.496000 0.285333 0.133333 0.096000\n', '8 0.501333 0.412000 0.074667 0.237333\n']
 
         print("所有的类别标签：", all_names, "共标注数据集：%d张" % len(txts))
 
@@ -81,6 +86,7 @@ class YOLO2VOCConvert:
         # 创建一个保存xml标签文件的文件夹
         if not os.path.exists(self.xmls_path):
             os.mkdir(self.xmls_path)
+
 
         # # 读取每张图片，获取图片的尺寸信息（shape）
         # imgs = os.listdir(self.imgs_path)
@@ -109,12 +115,15 @@ class YOLO2VOCConvert:
         # txts = os.listdir(self.txts_path)[1:] # 过滤掉classes.txt文件
         txts = os.listdir(self.txts_path)
         txts = [txt for txt in txts if not txt.split('.')[0] == "classes"]  # 过滤掉classes.txt文件
-        # print(txts)
+        print('imgs_path',self.imgs_path)
+        print(len(imgs))
+        print(len(txts))
         # 注意，这里保持图片的数量和标签txt文件数量相等，且要保证名字是一一对应的   (后面改进，通过判断txt文件名是否在imgs中即可)
+        print('len(imgs) == len(txts)', len(imgs) == len(txts))
         if len(imgs) == len(txts):  # 注意：./Annotation_txt 不要把classes.txt文件放进去
             map_imgs_txts = [(img, txt) for img, txt in zip(imgs, txts)]
             txts = [txt for txt in txts if txt.split('.')[-1] == 'txt']
-            # print(len(txts), txts)
+            print(len(txts), txts)
             for img_name, txt_name in tqdm(map_imgs_txts):
                 # 读取图片的尺度信息
                 # print("读取图片：", img_name)
@@ -175,6 +184,7 @@ class YOLO2VOCConvert:
 
                 # 每一个object中存储的都是['2', '0.506667', '0.553333', '0.490667', '0.658667']一个标注目标
                 for object_info in all_objects:
+                    print('object_info',object_info)
                     # 开始创建标注目标的label信息的标签
                     object = xmlBuilder.createElement("object")  # 创建object标签
                     # 创建label类别标签
@@ -241,6 +251,8 @@ class YOLO2VOCConvert:
                 f = open(os.path.join(self.xmls_path, txt_name.split('.')[0] + '.xml'), 'w')
                 xmlBuilder.writexml(f, indent='\t', newl='\n', addindent='\t', encoding='utf-8')
                 f.close()
+        else:
+            print('imgs文件与txts文件不一致，需过滤掉classes.txt文件')
 
 
 if __name__ == '__main__':
