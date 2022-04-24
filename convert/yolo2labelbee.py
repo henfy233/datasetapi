@@ -11,12 +11,19 @@
 import os
 import json
 from tqdm import tqdm
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--yolo_dir', type=str, default=r'D:\data\xxxanno\labels', help="root path of yolo")
+parser.add_argument('--labelbee_dir', type=str, default=r'D:\data\xxxanno\labelbee', help="root path of labelbee")
+parser.add_argument('--size', type=str, default=(1066, 800), help="image size")
+parser.add_argument('--classes', type=str, default={'0': '孕穗期', '1': '抽穗期', '2': '灌浆期'}, help="dataset classes")
+arg = parser.parse_args()
 
 
-def convert(yolo_dir, labelbee_dir, classes, width, height):
-    print("Loading data from ", yolo_dir)
-    assert os.path.exists(yolo_dir)
+def convert(yolo_dir, labelbee_dir, classes, size):
 
+    (width, height) = size
     indexes = os.listdir(yolo_dir)
     for k, index in enumerate(tqdm(indexes)):
         # for k, index in enumerate(indexes):
@@ -49,19 +56,23 @@ def convert(yolo_dir, labelbee_dir, classes, width, height):
                     'order': ann_id_cnt,
                 })
                 ann_id_cnt += 1
-        print(dataset)
+        # print(dataset)
         # 支持 jpg 格式的图片。
         jsonFile = index.replace('.txt', '.jpg') + '.json'
         # print(jsonFile)
         json_path = os.path.join(labelbee_dir, jsonFile)
         with open(json_path, 'w') as f:
             json.dump(dataset, f)
-            print('Save annotation to {}'.format(json_path))
+            # print('Save annotation to {}'.format(json_path))
 
 
 if __name__ == '__main__':
-    yolo_dir = r'D:\data\xxxanno\test'
-    labelbee_dir = r'D:\data\xxxanno\labelbee'
-    width, height = 1066, 800
-    classes = {'0': '孕穗期', '1': '抽穗期', '2': '灌浆期'}
-    convert(yolo_dir, labelbee_dir, classes, width, height)
+    yolo_dir = arg.yolo_dir
+    print("Loading data from ", yolo_dir)
+    assert os.path.exists(yolo_dir)
+    labelbee_dir = arg.labelbee_dir
+    assert os.path.exists(labelbee_dir)
+    size = arg.size
+    classes = arg.classes
+    # print(arg)
+    convert(yolo_dir, labelbee_dir, classes, size)
